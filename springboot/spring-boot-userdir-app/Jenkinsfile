@@ -1,24 +1,36 @@
+// Jenkinsfile
 pipeline {
     agent any
+
     stages {
         stage('Checkout') {
             steps {
-                echo 'Checking out source code...'
+                echo 'Cloning repository...'
                 checkout scm
             }
         }
-        stage('Build JAR') {
+        stage('Build') {
             steps {
-                echo 'Building the Spring Boot JAR...'
-                sh 'mvn clean package -DskipTests'
+                echo 'Building the project...'
+                sh './mvnw clean package' // or 'mvn clean package' if you use Maven
             }
         }
-        stage('Build Docker Image') {
+        stage('Docker Build') {
             steps {
-                echo 'Building the Docker image...'
-                sh 'docker build -t userdir-app .'
+                echo 'Building Docker image...'
+                sh 'docker build -t myapp:latest .'
             }
         }
-        // Optional: Add more stages for push, deploy, etc.
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
+                sh './mvnw test' // or 'mvn test'
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
     }
 }
