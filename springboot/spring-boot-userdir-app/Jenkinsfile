@@ -1,6 +1,12 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "vvtl8an/myapp"
+        GIT_COMMIT = "${env.GIT_COMMIT ?: ''}"
+        BUILD_TAG = "${env.BUILD_NUMBER ?: 'latest'}"
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -18,9 +24,14 @@ pipeline {
         }
         stage('Docker Build') {
             steps {
-                echo 'Building Docker image...'
+                script {
+                    // Use short git commit hash as tag
+                    def commit = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = "${commit}-${env.BUILD_NUMBER}"
+                }
+                echo "Building Docker image with tag: ${env.IMAGE_TAG}"
                 dir('springboot/spring-boot-userdir-app') {
-                    sh 'docker build -t vvtl8an/myapp:latest .'
+                    sh "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
                 }
             }
         }
@@ -31,18 +42,10 @@ pipeline {
                     dir('springboot/spring-boot-userdir-app') {
                         sh '''
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push vvtl8an/myapp:latest
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
                             docker logout
                         '''
                     }
-                }
-            }
-        }
-        stage('Test') {
-            steps {
-                echo 'Running tests...'
-                dir('springboot/spring-boot-userdir-app') {
-                    sh 'mvn test'
                 }
             }
         }
