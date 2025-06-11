@@ -20,7 +20,7 @@ pipeline {
             steps {
                 echo 'Building Docker image...'
                 dir('springboot/spring-boot-userdir-app') {
-                    sh 'docker build -t your-dockerhub-username/myapp:latest .'
+                    sh 'docker build -t vvtl8an/myapp:latest .'
                 }
             }
         }
@@ -31,7 +31,7 @@ pipeline {
                     dir('springboot/spring-boot-userdir-app') {
                         sh '''
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                            docker push your-dockerhub-username/myapp:latest
+                            docker push vvtl8an/myapp:latest
                             docker logout
                         '''
                     }
